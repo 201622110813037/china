@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+	<link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css">
+	<script src="https://js.arcgis.com/4.15/"></script>
+    <title></title>
+    <style>
+      html, body, #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+  <script>
+	var searchWidget;
+    require([
+		"esri/Map",
+        "esri/views/MapView",
+		"esri/layers/GeoJSONLayer",
+		"esri/widgets/Search",
+		], function(Map, MapView, GeoJSONLayer, Search) {
+  
+		var map = new Map({
+			basemap: "topo-vector"
+		});
+  
+		var view = new MapView({
+			container: "viewDiv",
+			map: map,
+			center: [116, 39], // longitude, latitude
+			zoom: 4
+		});
+		//定义一个底图的renderer渲染器
+		var defaultSym = {
+			type: "simple-fill", // autocasts as new SimpleFillSymbol()
+			outline: {
+				// autocasts as new SimpleLineSymbol()
+				color: [128, 128, 128, 0.2],
+				width: "0.5px"
+			}
+		};
+		//定义一个渲染器
+		var Moth_renderer = {
+			type: "simple", // autocasts as new SimpleRenderer()
+			symbol: defaultSym,
+			visualVariables: [{
+				type: "color",
+				field: "ID_1",
+				stops: [{
+						value: 589,
+						color: "#FFFCD4",
+						label: "<10%"
+					},
+					{
+						value: 602,
+						color: [153, 83, 41],
+						label: ">30%"
+					}
+				]
+			}]
+		};
+		//定义一个geojsonlayer作为底图
+		var Moth_geoJSONLayer = new GeoJSONLayer({
+			url: "https://201622110813037.github.io/china/china.json",
+			renderer: Moth_renderer
+		});
+		map.add(Moth_geoJSONLayer);
+		
+		//定义一个搜索控件
+		searchWidget = new Search({
+			view: view,
+			allPlaceholder: "请输入市级编号，如9978",
+			sources: [{
+				layer: Moth_geoJSONLayer,
+				searchFields: ["ID_2"],
+				displayField: "ID_2",
+				/* exactMatch: false, */
+				outFields: ["NAME_1", "NAME_2", "Shape_Area"],
+				name: "中国市级图层",
+				placeholder: "请输入市级编号，如9978"
+			}]
+		});
+		
+		view.ui.add(searchWidget, {
+			position: "top-right"
+		});
+		
+    });
+    </script>
+</html>
